@@ -1,0 +1,38 @@
+canvas {
+  display: block;
+  margin: 0 auto;
+  background: gray;
+}
+
+body {
+  text-align: center;
+  font-family: sans-serif;
+  background: white;
+  color: black;
+}
+
+.button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 10px;
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+.hidden {
+  display: none;
+}
+
+#lobby {
+  margin-top: 50px;
+}
+
+#startGameButton {
+  margin-bottom: 50px;
+}
