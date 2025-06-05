@@ -1,19 +1,14 @@
-<?php
-session_start();
-$userid = isset($_SESSION["userid"]) ? $_SESSION["userid"] : "";
-$username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
-?>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <title>사과 게임 - 게임랜드</title>
   <link rel="stylesheet" href="./css/common.css" />
-  <link rel="stylesheet" href="./css/apple_game.css" /> <!-- 새로 추가한 CSS -->
+  <link rel="stylesheet" href="./css/apple_game.css" />
 </head>
 <body>
   <header>
-    <?php include "header.php"; ?>
+    <!-- header.php 포함 부분은 제거됨 -->
   </header>
   <section>
     <div id="main_img_bar">
@@ -48,14 +43,15 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
   </section>
   <style>
     #startGameButton {
-    margin-bottom: 50px;
-  }
+      margin-bottom: 50px;
+    }
   </style>
   <footer>
-    <?php include "footer.php"; ?>
+    <!-- footer.php 포함 부분은 제거됨 -->
   </footer>
 
   <script>
+    // --- 여기에 기존 JS 전체 코드 동일하게 붙여넣기 ---
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const restartButton = document.getElementById("restartButton");
@@ -79,17 +75,16 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
     let intervalId = null;
 
     inGameBackToLobbyButton.addEventListener("click", () => {
-      clearInterval(intervalId);       // 타이머 완전 중지
-      gameOver = true;                 // 상태를 종료로 설정 (렌더링에도 반영됨)
-      selectedCells = [];              // 선택된 셀 초기화
-      isDragging = false;              // 드래그 상태 해제
-      restartButton.classList.add("hidden"); // 게임오버 버튼 숨김
-      backToLobbyButton.classList.add("hidden"); // 게임오버용 로비 버튼도 숨김
-      inGameBackToLobbyButton.classList.add("hidden"); // 자신도 숨김
-      gameSection.classList.add("hidden"); // 게임 섹션 숨김
-      lobby.classList.remove("hidden");   // 로비 화면 표시
+      clearInterval(intervalId);
+      gameOver = true;
+      selectedCells = [];
+      isDragging = false;
+      restartButton.classList.add("hidden");
+      backToLobbyButton.classList.add("hidden");
+      inGameBackToLobbyButton.classList.add("hidden");
+      gameSection.classList.add("hidden");
+      lobby.classList.remove("hidden");
 
-      // 배경음악 중지 추가
       const bgm = document.getElementById("bgmApple");
       bgm.pause();
       bgm.currentTime = 0;
@@ -189,7 +184,6 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
         }
         score += selectedCells.length;
 
-        // 효과음 1회 재생
         const effect = document.getElementById("effectApple");
         effect.currentTime = 0;
         effect.play();
@@ -238,7 +232,6 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
     }
 
     function startGame() {
-      // 로비 숨기고 게임 영역 보여줌
       lobby.classList.add("hidden");
       gameSection.classList.remove("hidden");
       inGameBackToLobbyButton.classList.remove("hidden");
@@ -248,12 +241,11 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
       initGrid();
       gameOver = false;
       timeLeft = 120;
-      score = 0; 
+      score = 0;
       selectedCells = [];
       restartButton.classList.add("hidden");
       backToLobbyButton.classList.add("hidden");
 
-      // 배경음악 무한 반복 재생 시작
       const bgm = document.getElementById("bgmApple");
       bgm.currentTime = 0;
       bgm.play();
@@ -263,8 +255,7 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
           timeLeft--;
           if (timeLeft <= 0) {
             gameOver = true;
-            saveScore(score);
-            // 게임 종료 시 배경음악 정지
+            // 서버 연동 부분 제거 (saveScore 호출 없음)
             bgm.pause();
             bgm.currentTime = 0;
           }
@@ -274,7 +265,6 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
 
       render();
     }
-
 
     canvas.addEventListener("mousedown", (e) => {
       if (gameOver) return;
@@ -342,25 +332,6 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
       window.location.href = "index.php";
     });
 
-    function saveScore(score) {
-      fetch("save_score.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `score=${encodeURIComponent(score)}&game_name=apple`
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("서버 오류");
-        return res.json();  // JSON이 반환되지 않으면 여기서 에러 발생
-      })
-      .then(data => {
-        if (data?.message) alert(data.message);  // 점수 갱신 메시지 출력
-      })
-      .catch(err => {
-        console.error("fetch 에러:", err);
-      });
-    }
     document.addEventListener("DOMContentLoaded", () => {
       const bgm = document.getElementById("bgmApple");
       const effect = document.getElementById("effectApple");
@@ -368,7 +339,6 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
       const bgmVolumeControl = document.getElementById("bgmVolume");
       const effectVolumeControl = document.getElementById("effectVolume");
 
-      // 초기값 세팅 (슬라이더 값 -> 오디오 볼륨)
       bgm.volume = bgmVolumeControl.value;
       effect.volume = effectVolumeControl.value;
 
@@ -379,9 +349,10 @@ $username = isset($_SESSION["username"]) ? $_SESSION["username"] : "";
       effectVolumeControl.addEventListener("input", (e) => {
         effect.volume = e.target.value;
       });
-  });
+    });
   </script>
-<audio id="bgmApple" src="audio/bgm_apple.mp3" loop></audio>
-<audio id="effectApple" src="audio/effect_apple.mp3"></audio>
+
+  <audio id="bgmApple" src="./sound/bgm.mp3" loop></audio>
+  <audio id="effectApple" src="./sound/apple_effect.mp3"></audio>
 </body>
 </html>
