@@ -1,8 +1,3 @@
-<?php
-session_start();
-$userid = $_SESSION["userid"] ?? "";
-$username = $_SESSION["username"] ?? "";
-?>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -13,7 +8,11 @@ $username = $_SESSION["username"] ?? "";
 </head>
 <body>
 <header>
-  <?php include "header.php"; ?>
+  <!-- header.php의 내용 예시 -->
+  <div class="header">
+    <h1>게임랜드</h1>
+    <div class="user-info">로그인 사용자: testuser (ID: 123)</div>
+  </div>
 </header>
 
 <section>
@@ -25,16 +24,14 @@ $username = $_SESSION["username"] ?? "";
 <section id="lobby">
   <h1>🧮 2048 🧮</h1>
   <p>방향키로 타일을 움직여 점수를 높이세요!</p>
-  <button id="startGameButton" class="button">게임 시작</button>
-  <a href="index.php" class="button">돌아가기</a>
+  <button id="startGameButton" class="button" type="button">게임 시작</button>
+  <a href="index.html" class="button">돌아가기</a>
   <p>조작키 : ↑ ↓ ← → 방향키</p>
-  <!-- 볼륨 조절 메뉴 -->
-    <div id="volumeControl" style="margin-top: 30px;">
-      <h3>소리 설정 🎵</h3>
-      <label for="bgmVolume">배경음:</label>
-      <input type="range" id="bgmVolume" min="0" max="1" step="0.01" value="1" />
-    </div>
-  </section>
+  <div id="volumeControl" style="margin-top: 30px;">
+    <h3>소리 설정 🎵</h3>
+    <label for="bgmVolume">배경음:</label>
+    <input type="range" id="bgmVolume" min="0" max="1" step="0.01" value="1" />
+  </div>
 </section>
 
 <section id="gameSection" class="hidden">
@@ -42,14 +39,20 @@ $username = $_SESSION["username"] ?? "";
   <p>방향키로 타일을 움직여 보세요!</p>
   <div id="score">점수: 0</div>
   <div id="grid"></div>
-  <button id="backToLobbyButton">로비로 돌아가기</button>
+  <button id="backToLobbyButton" type="button">로비로 돌아가기</button>
 </section>
 
 <footer>
-  <?php include "footer.php"; ?>
+  <!-- footer.php의 내용 예시 -->
+  <div class="footer">
+    <p>&copy; 2025 게임랜드. All rights reserved.</p>
+  </div>
 </footer>
 
+<!-- JavaScript는 기존과 동일하게 유지 -->
 <script>
+let bgm;
+
 const startGameButton = document.getElementById("startGameButton");
 const backToLobbyButton = document.getElementById("backToLobbyButton");
 const lobby = document.getElementById("lobby");
@@ -105,7 +108,7 @@ function slide(row) {
     if(arr[i] === arr[i+1]) {
       arr[i] *= 2;
       score += Math.log2(arr[i]) * 0.1;
-      score = Math.round(score * 10) / 10;  // 소수점 1자리로 반올림해서 유지
+      score = Math.round(score * 10) / 10;
       arr[i+1] = 0;
     }
   }
@@ -117,7 +120,6 @@ function slide(row) {
 function updateScore() {
   scoreDisplay.textContent = "점수: " + score.toFixed(1);
 }
-
 
 function rotateLeft(matrix) {
   const N = matrix.length;
@@ -131,24 +133,14 @@ function rotateLeft(matrix) {
 }
 
 function move(direction) {
-  // direction: "left", "right", "up", "down"
-  // 회전 변환으로 모두 left 이동으로 변환 처리
   let rotated = board;
   let rotatedCount = 0;
 
   switch(direction) {
-    case "up": 
-      rotatedCount = 1; 
-      break;
-    case "right":
-      rotatedCount = 2; 
-      break;
-    case "down":
-      rotatedCount = 3; 
-      break;
-    case "left":
-      rotatedCount = 0; 
-      break;
+    case "up": rotatedCount = 1; break;
+    case "right": rotatedCount = 2; break;
+    case "down": rotatedCount = 3; break;
+    case "left": rotatedCount = 0; break;
   }
 
   for(let i=0; i<rotatedCount; i++) {
@@ -163,7 +155,6 @@ function move(direction) {
     newBoard.push(newRow);
   }
 
-  // 역회전
   for(let i=0; i<(4 - rotatedCount) % 4; i++) {
     newBoard = rotateLeft(newBoard);
   }
@@ -184,13 +175,11 @@ function move(direction) {
 }
 
 function checkGameOver() {
-  // 빈칸 있으면 false
   for(let r=0; r<SIZE; r++) {
     for(let c=0; c<SIZE; c++) {
       if(board[r][c] === 0) return false;
     }
   }
-  // 좌우상하 인접 동일값 있으면 false
   for(let r=0; r<SIZE; r++) {
     for(let c=0; c<SIZE; c++) {
       const val = board[r][c];
@@ -207,14 +196,14 @@ function saveScore(score) {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: `score=${encodeURIComponent(score)}&game_name=even`
+    body: `score=${encodeURIComponent(score)}&game_name=2048`
   })
   .then(res => {
     if (!res.ok) throw new Error("서버 오류");
-    return res.json();  // JSON이 반환되지 않으면 여기서 에러 발생
+    return res.json();
   })
   .then(data => {
-    if (data?.message) alert(data.message);  // 점수 갱신 메시지 출력
+    if (data?.message) alert(data.message);
   })
   .catch(err => {
     console.error("fetch 에러:", err);
@@ -231,10 +220,9 @@ function startGame() {
   gameSection.classList.remove("hidden");
   initBoard();
   window.addEventListener("keydown", onKeyDown);
-  const bgm = document.getElementById("bgm2048");
+  bgm = document.getElementById("bgm2048");
   bgm.currentTime = 0;
   bgm.play();
-
 }
 
 function onKeyDown(e) {
@@ -242,20 +230,11 @@ function onKeyDown(e) {
 
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
     e.preventDefault(); 
-    
     switch(e.key) {
-      case "ArrowLeft":
-        move("left");
-        break;
-      case "ArrowRight":
-        move("right");
-        break;
-      case "ArrowUp":
-        move("up");
-        break;
-      case "ArrowDown":
-        move("down");
-        break;
+      case "ArrowLeft": move("left"); break;
+      case "ArrowRight": move("right"); break;
+      case "ArrowUp": move("up"); break;
+      case "ArrowDown": move("down"); break;
     }
   }
 }
@@ -269,19 +248,17 @@ backToLobbyButton.addEventListener("click", () => {
     window.removeEventListener("keydown", onKeyDown);
   }
 });
+
 document.addEventListener("DOMContentLoaded", () => {
-  const bgm = document.getElementById("bgm2048");
-
+  bgm = document.getElementById("bgm2048");
   const bgmVolumeControl = document.getElementById("bgmVolume");
-
-  // 초기값 세팅 (슬라이더 값 -> 오디오 볼륨)
   bgm.volume = bgmVolumeControl.value;
-
   bgmVolumeControl.addEventListener("input", (e) => {
-  bgm.volume = e.target.value;
+    bgm.volume = e.target.value;
   });
 });
 </script>
+
 <audio id="bgm2048" src="audio/bgm_2048.mp3" loop></audio>
 </body>
 </html>
