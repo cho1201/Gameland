@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>테트리스 - 게임랜드</title>
+  <link rel="stylesheet" href="./css/common.css" />
+  <link rel="stylesheet" href="./css/tetris.css" />
+</head>
+<body>
+<header>
+  <!-- header.php 내용 직접 삽입 -->
+  <nav>
+    <h2>게임랜드</h2>
+    <a href="index.html">홈</a>
+    <a href="login.html">로그인</a>
+    <a href="signup.html">회원가입</a>
+  </nav>
+</header>
+
+<section>
+  <div id="main_img_bar">
+    <img src="./img/main_img.png" alt="메인 이미지" />
+  </div>
+</section>
+
+<section id="lobby">
+  <h1>🧱 테트리스 🧱</h1>
+  <p>블록을 회전하고 쌓아서 한 줄을 채우면 점수를 얻습니다!</p>
+  <button id="startGameButton" class="button">게임 시작</button>
+  <a href="index.html" class="button">돌아가기</a>
+  <p>조작키 : ↑ ↓ ← → 방향키 / 하드드롭 : 스페이스바 / 홀드 : C</p>
+  <div id="volumeControl" style="margin-top: 30px;">
+    <h3>소리 설정 🎵</h3>
+    <label for="bgmVolume">배경음:</label>
+    <input type="range" id="bgmVolume" min="0" max="1" step="0.01" value="1" />
+    <br />
+    <label for="effectVolume">효과음:</label>
+    <input type="range" id="effectVolume" min="0" max="1" step="0.01" value="1" />
+  </div>
+</section>
+
+<style>
+  #startGameButton {
+    margin-bottom: 50px;
+  }
+</style>
+
+<section id="gameSection" class="hidden">
+  <h1>테트리스</h1>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="300" height="600"></canvas>
+    <div id="sidePanel">
+      <p><strong>점수:</strong> <span id="score">0</span></p>
+      <p><strong>레벨:</strong> <span id="level">1</span></p>
+      <p><strong>다음 블록:</strong></p>
+      <canvas id="nextCanvas" width="120" height="120"></canvas>
+      <p><strong>보유 블록:</strong></p>
+      <canvas id="holdCanvas" width="120" height="120"></canvas>
+      <button id="inGameBackToLobbyButton" class="button">로비로 가기</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <!-- footer.php 내용 직접 삽입 -->
+  <p>© 2025 게임랜드. 모든 권리 보유.</p>
+</footer>
+
+<!-- 기존 PHP 백엔드 처리 제거. JS는 그대로 유지 -->
+<script src="./js/tetris.js"></script>
+<audio id="bgmTetris" src="audio/bgm_tetris.mp3" loop></audio>
+<audio id="effectClearLine" src="audio/effect_tetris.mp3"></audio>
+</body>
+</html>
