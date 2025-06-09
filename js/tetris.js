@@ -227,21 +227,51 @@ function update(time = 0) {
   requestAnimationFrame(update);
 }
 
+let isMovingLeft = false;
+let isMovingRight = false;
+let isMovingDown = false;
+let isRotating = false;
+
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
 
+  // 기본 동작 방지
   switch (e.key) {
-    case "ArrowLeft": case "ArrowRight": case "ArrowDown":
-    case "ArrowUp": case " ": case "c": e.preventDefault(); break;
+    case "ArrowLeft": 
+    case "ArrowRight": 
+    case "ArrowDown":
+    case "ArrowUp": 
+    case " ": 
+    case "c": 
+      e.preventDefault(); 
+      break;
   }
 
+  // 방향키 입력 처리
   switch (e.key) {
-    case "ArrowLeft": if (canMove(current.shape, x - 1, y)) x--; break;
-    case "ArrowRight": if (canMove(current.shape, x + 1, y)) x++; break;
-    case "ArrowDown": drop(); dropCounter = 0; break;
+    case "ArrowLeft":
+      if (!isMovingLeft) {
+        isMovingLeft = true;
+        moveLeft(); // 왼쪽으로 이동
+      }
+      break;
+    case "ArrowRight":
+      if (!isMovingRight) {
+        isMovingRight = true;
+        moveRight(); // 오른쪽으로 이동
+      }
+      break;
+    case "ArrowDown":
+      if (!isMovingDown) {
+        isMovingDown = true;
+        moveDown(); // 아래로 이동
+      }
+      break;
     case "ArrowUp":
-      const rotated = rotate(current.shape);
-      if (canMove(rotated, x, y)) current.shape = rotated;
+      if (!isRotating) {
+        isRotating = true;
+        rotateBlock(); // 회전
+      }
       break;
     case " ":
       while (canMove(current.shape, x, y + 1)) y++;
@@ -263,6 +293,38 @@ document.addEventListener("keydown", e => {
       break;
   }
 });
+
+document.addEventListener("keyup", e => {
+  switch (e.key) {
+    case "ArrowLeft": isMovingLeft = false; break;
+    case "ArrowRight": isMovingRight = false; break;
+    case "ArrowDown": isMovingDown = false; break;
+    case "ArrowUp": isRotating = false; break;
+  }
+});
+
+// 키가 계속 눌려 있을 때 이동을 반복하는 함수들
+function moveLeft() {
+  if (canMove(current.shape, x - 1, y)) x--;
+  if (isMovingLeft) requestAnimationFrame(moveLeft);
+}
+
+function moveRight() {
+  if (canMove(current.shape, x + 1, y)) x++;
+  if (isMovingRight) requestAnimationFrame(moveRight);
+}
+
+function moveDown() {
+  drop(); dropCounter = 0;
+  if (isMovingDown) requestAnimationFrame(moveDown);
+}
+
+function rotateBlock() {
+  const rotated = rotate(current.shape);
+  if (canMove(rotated, x, y)) current.shape = rotated;
+  isRotating = false; // 한번 회전 후에는 멈춤
+}
+
 
 startGameButton.addEventListener("click", startGame);
 inGameBackToLobbyButton.addEventListener("click", () => {
