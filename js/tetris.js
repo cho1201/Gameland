@@ -167,12 +167,15 @@ function saveScore(score) {
   fetch("save_score.php", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: score=${encodeURIComponent(score)}&game_name=tetris
+    body: `score=${encodeURIComponent(score)}&game_name=tetris`
   })
   .then(res => res.json())
-  .then(data => { if (data?.message) alert(data.message); })
+  .then(data => { 
+    if (data?.message) alert(data.message); 
+  })
   .catch(err => console.error("점수 저장 실패:", err));
 }
+
 
 function gameOver() {
   isGameOver = true;
