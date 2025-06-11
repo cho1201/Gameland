@@ -30,14 +30,6 @@ let dropInterval = 1000;
 let dropCounter = 0, lastTime = 0;
 let isGameOver = false;
 
-let isMovingLeft = false;
-let isMovingRight = false;
-let isMovingDown = false;
-let isRotating = false;
-
-let lastMoveTime = 0; // 마지막 이동 시간 추적
-const moveDelay = 150; // 이동 딜레이 (ms)
-
 function randomBlock() {
   const keys = Object.keys(SHAPES);
   const type = keys[Math.floor(Math.random() * keys.length)];
@@ -175,7 +167,7 @@ function saveScore(score) {
   fetch("save_score.php", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `score=${encodeURIComponent(score)}&game_name=tetris`
+    body: score=${encodeURIComponent(score)}&game_name=tetris
   })
   .then(res => res.json())
   .then(data => { if (data?.message) alert(data.message); })
@@ -234,6 +226,73 @@ function update(time = 0) {
   draw();
   requestAnimationFrame(update);
 }
+
+let isMovingLeft = false;
+let isMovingRight = false;
+let isMovingDown = false;
+let isRotating = false;
+
+document.addEventListener("keydown", e => {
+  if (isGameOver) return;
+
+  // 기본 동작 방지
+  switch (e.key) {
+    case "ArrowLeft": 
+    case "ArrowRight": 
+    case "ArrowDown":
+    case "ArrowUp": 
+    case " ": 
+    case "c": 
+      e.preventDefault(); 
+      break;
+  }
+
+  // 방향키 입력 처리
+  switch (e.key) {
+    case "ArrowLeft":
+      if (!isMovingLeft) {
+        isMovingLeft = true;
+        moveLeft(); // 왼쪽으로 이동
+      }
+      break;
+    case "ArrowRight":
+      if (!isMovingRight) {
+        isMovingRight = true;
+        moveRight(); // 오른쪽으로 이동
+      }
+      break;
+    case "ArrowDown":
+      if (!isMovingDown) {
+        isMovingDown = true;
+        moveDown(); // 아래로 이동
+      }
+      break;
+    case "ArrowUp":
+      if (!isRotating) {
+        isRotating = true;
+        rotateBlock(); // 회전
+      }
+      break;
+    case " ":
+      while (canMove(current.shape, x, y + 1)) y++;
+      drop(); dropCounter = 0; break;
+    case "c":
+      if (!holdUsed) {
+        if (!hold) {
+          hold = { type: current.type, shape: current.shape };
+          resetBlock();
+        } else {
+          [hold.type, current.type] = [current.type, hold.type];
+          [hold.shape, current.shape] = [current.shape, hold.shape];
+          x = 3; y = 0;
+          if (!canMove(current.shape, x, y)) gameOver();
+        }
+        holdUsed = true;
+        drawHoldBlock();
+      }
+      break;
+  }
+});
 
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
@@ -319,21 +378,28 @@ function rotateBlock(direction) {
     rotated = rotate(current.shape).reverse();
   }
 
-  if (canMove(rotated, x, y)) current.shape = rotated;
+  // 회전 후 충돌을 확인하고, 충돌 시 위치를 조정합니다.
+  if (canMove(rotated, x, y)) {
+    current.shape = rotated;
+  } else {
+    // 충돌 시 회전한 블록을 벽에서 떨어뜨리기 위해
+    // 좌우로 이동을 시도합니다. 왼쪽으로 이동하고, 오른쪽으로 이동 시도
+    if (canMove(rotated, x - 1, y)) {
+      x--; // 왼쪽으로 이동
+      current.shape = rotated;
+    } else if (canMove(rotated, x + 1, y)) {
+      x++; // 오른쪽으로 이동
+      current.shape = rotated;
+    } else if (canMove(rotated, x, y + 1)) {
+      // 여전히 충돌이 발생하면, 블록을 한 칸 아래로 내리면서 회전
+      y++; 
+      current.shape = rotated;
+    }
+  }
   isRotating = false; // 한번 회전 후에는 멈춤
 }
 
-  lastMoveTime = currentTime;
-});
 
-document.addEventListener("keyup", e => {
-  switch (e.key) {
-    case "ArrowLeft": isMovingLeft = false; break;
-    case "ArrowRight": isMovingRight = false; break;
-    case "ArrowDown": isMovingDown = false; break;
-    case "ArrowUp": isRotating = false; break;
-  }
-});
 
 // 키가 계속 눌려 있을 때 이동을 반복하는 함수들
 function moveLeft() {
@@ -351,28 +417,9 @@ function moveDown() {
   if (isMovingDown) requestAnimationFrame(moveDown);
 }
 
-function rotateBlock(direction) {
-  let rotated;
-  if (direction === "clockwise") {
-    rotated = rotate(current.shape);
-  } else if (direction === "counterclockwise") {
-    rotated = rotate(current.shape).reverse();
-  }
-
-  if (canMove(rotated, x, y)) {
-    current.shape = rotated;
-  } else {
-    if (canMove(rotated, x - 1, y)) {
-      x--; // 왼쪽으로 이동
-      current.shape = rotated;
-    } else if (canMove(rotated, x + 1, y)) {
-      x++; // 오른쪽으로 이동
-      current.shape = rotated;
-    } else if (canMove(rotated, x, y + 1)) {
-      y++; 
-      current.shape = rotated;
-    }
-  }
+function rotateBlock() {
+  const rotated = rotate(current.shape);
+  if (canMove(rotated, x, y)) current.shape = rotated;
   isRotating = false; // 한번 회전 후에는 멈춤
 }
 
@@ -383,4 +430,19 @@ inGameBackToLobbyButton.addEventListener("click", () => {
     isGameOver = true;
     showLobby();
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const bgmVolumeControl = document.getElementById("bgmVolume");
+  const effectVolumeControl = document.getElementById("effectVolume");
+
+  bgmTetris.volume = bgmVolumeControl.value;
+  effectClearLine.volume = effectVolumeControl.value;
+
+  bgmVolumeControl.addEventListener("input", (e) => {
+    bgmTetris.volume = e.target.value;
+  });
+  effectVolumeControl.addEventListener("input", (e) => {
+    effectClearLine.volume = e.target.value;
+  });
 });
