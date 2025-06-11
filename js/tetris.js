@@ -30,6 +30,14 @@ let dropInterval = 1000;
 let dropCounter = 0, lastTime = 0;
 let isGameOver = false;
 
+let isMovingLeft = false;
+let isMovingRight = false;
+let isMovingDown = false;
+let isRotating = false;
+
+let lastMoveTime = 0; // 마지막 이동 시간 추적
+const moveDelay = 150; // 이동 딜레이 (ms)
+
 function randomBlock() {
   const keys = Object.keys(SHAPES);
   const type = keys[Math.floor(Math.random() * keys.length)];
@@ -227,11 +235,6 @@ function update(time = 0) {
   requestAnimationFrame(update);
 }
 
-let isMovingLeft = false;
-let isMovingRight = false;
-let isMovingDown = false;
-let isRotating = false;
-
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
 
@@ -243,9 +246,14 @@ document.addEventListener("keydown", e => {
     case "ArrowUp": 
     case " ": 
     case "c": 
+    case "z": 
+    case "x": 
       e.preventDefault(); 
       break;
   }
+
+  const currentTime = Date.now();
+  if (currentTime - lastMoveTime < moveDelay) return;
 
   // 방향키 입력 처리
   switch (e.key) {
@@ -268,9 +276,16 @@ document.addEventListener("keydown", e => {
       }
       break;
     case "ArrowUp":
+    case "z":
       if (!isRotating) {
         isRotating = true;
-        rotateBlock(); // 회전
+        rotateBlock("clockwise"); // 시계방향 회전
+      }
+      break;
+    case "x":
+      if (!isRotating) {
+        isRotating = true;
+        rotateBlock("counterclockwise"); // 반시계방향 회전
       }
       break;
     case " ":
@@ -292,6 +307,23 @@ document.addEventListener("keydown", e => {
       }
       break;
   }
+
+  lastMoveTime = currentTime;
+});
+
+function rotateBlock(direction) {
+  let rotated;
+  if (direction === "clockwise") {
+    rotated = rotate(current.shape);
+  } else if (direction === "counterclockwise") {
+    rotated = rotate(current.shape).reverse();
+  }
+
+  if (canMove(rotated, x, y)) current.shape = rotated;
+  isRotating = false; // 한번 회전 후에는 멈춤
+}
+
+  lastMoveTime = currentTime;
 });
 
 document.addEventListener("keyup", e => {
@@ -319,9 +351,28 @@ function moveDown() {
   if (isMovingDown) requestAnimationFrame(moveDown);
 }
 
-function rotateBlock() {
-  const rotated = rotate(current.shape);
-  if (canMove(rotated, x, y)) current.shape = rotated;
+function rotateBlock(direction) {
+  let rotated;
+  if (direction === "clockwise") {
+    rotated = rotate(current.shape);
+  } else if (direction === "counterclockwise") {
+    rotated = rotate(current.shape).reverse();
+  }
+
+  if (canMove(rotated, x, y)) {
+    current.shape = rotated;
+  } else {
+    if (canMove(rotated, x - 1, y)) {
+      x--; // 왼쪽으로 이동
+      current.shape = rotated;
+    } else if (canMove(rotated, x + 1, y)) {
+      x++; // 오른쪽으로 이동
+      current.shape = rotated;
+    } else if (canMove(rotated, x, y + 1)) {
+      y++; 
+      current.shape = rotated;
+    }
+  }
   isRotating = false; // 한번 회전 후에는 멈춤
 }
 
@@ -332,19 +383,4 @@ inGameBackToLobbyButton.addEventListener("click", () => {
     isGameOver = true;
     showLobby();
   }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const bgmVolumeControl = document.getElementById("bgmVolume");
-  const effectVolumeControl = document.getElementById("effectVolume");
-
-  bgmTetris.volume = bgmVolumeControl.value;
-  effectClearLine.volume = effectVolumeControl.value;
-
-  bgmVolumeControl.addEventListener("input", (e) => {
-    bgmTetris.volume = e.target.value;
-  });
-  effectVolumeControl.addEventListener("input", (e) => {
-    effectClearLine.volume = e.target.value;
-  });
 });
