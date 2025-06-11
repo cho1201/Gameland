@@ -235,67 +235,6 @@ let isMovingRight = false;
 let isMovingDown = false;
 let isRotating = false;
 
-document.addEventListener("keydown", e => {
-  if (isGameOver) return;
-
-  // 기본 동작 방지
-  switch (e.key) {
-    case "ArrowLeft": 
-    case "ArrowRight": 
-    case "ArrowDown":
-    case "ArrowUp": 
-    case " ": 
-    case "c": 
-      e.preventDefault(); 
-      break;
-  }
-
-  // 방향키 입력 처리
-  switch (e.key) {
-    case "ArrowLeft":
-      if (!isMovingLeft) {
-        isMovingLeft = true;
-        moveLeft(); // 왼쪽으로 이동
-      }
-      break;
-    case "ArrowRight":
-      if (!isMovingRight) {
-        isMovingRight = true;
-        moveRight(); // 오른쪽으로 이동
-      }
-      break;
-    case "ArrowDown":
-      if (!isMovingDown) {
-        isMovingDown = true;
-        moveDown(); // 아래로 이동
-      }
-      break;
-    case "ArrowUp":
-      if (!isRotating) {
-        isRotating = true;
-        rotateBlock(); // 회전
-      }
-      break;
-    case " ":
-      while (canMove(current.shape, x, y + 1)) y++;
-      drop(); dropCounter = 0; break;
-    case "c":
-      if (!holdUsed) {
-        if (!hold) {
-          hold = { type: current.type, shape: current.shape };
-          resetBlock();
-        } else {
-          [hold.type, current.type] = [current.type, hold.type];
-          [hold.shape, current.shape] = [current.shape, hold.shape];
-          x = 3; y = 0;
-          if (!canMove(current.shape, x, y)) gameOver();
-        }
-        holdUsed = true;
-        drawHoldBlock();
-      }
-      break;
-  }
-});
 
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
