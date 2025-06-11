@@ -359,13 +359,6 @@ function moveDown() {
   if (isMovingDown) requestAnimationFrame(moveDown);
 }
 
-function rotateBlock() {
-  const rotated = rotate(current.shape);
-  if (canMove(rotated, x, y)) current.shape = rotated;
-  isRotating = false; // 한번 회전 후에는 멈춤
-}
-
-
 startGameButton.addEventListener("click", () => {
   console.log("게임 시작 버튼 클릭됨");
   startGame(); // 게임 시작 함수 호출
