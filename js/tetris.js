@@ -424,7 +424,12 @@ function rotateBlock() {
 }
 
 
-startGameButton.addEventListener("click", startGame);
+startGameButton.addEventListener("click", () => {
+  console.log("게임 시작 버튼 클릭됨");
+  startGame(); // 게임 시작 함수 호출
+});
+
+//startGameButton.addEventListener("click", startGame);
 inGameBackToLobbyButton.addEventListener("click", () => {
   if (confirm("게임을 중단하고 로비로 돌아가시겠습니까? 점수는 저장되지 않습니다.")) {
     isGameOver = true;
