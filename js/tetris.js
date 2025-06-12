@@ -236,64 +236,76 @@ let isMovingDown = false;
 let isRotating = false;
 
 
+const keyState = {};
+const keyInterval = {};
+const KEY_DELAY = 150; // 좌우 이동 간격
+
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
 
-  // 기본 동작 방지
-  switch (e.key) {
-    case "ArrowLeft": 
-    case "ArrowRight": 
-    case "ArrowDown":
-    case "ArrowUp": 
-    case " ": 
-    case "c": 
-    case "z": 
-    case "x": 
-      e.preventDefault(); 
-      break;
+  const key = e.key;
+  if (!["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", " ", "c"].includes(key)) return;
+  e.preventDefault();
+
+  // 좌우 이동 키 반복 처리
+  if (key === "ArrowLeft" || key === "ArrowRight") {
+    if (keyState[key]) return; // 이미 누르고 있으면 무시
+    keyState[key] = true;
+    handleKeyAction(key); // 즉시 실행
+    keyInterval[key] = setInterval(() => handleKeyAction(key), KEY_DELAY);
+  } else {
+    // 그 외 키는 한 번만 처리
+    handleKeyAction(key);
   }
-  let lastMoveTime = 0;
-  const moveDelay = 150; // 키 반복 입력 간 최소 간격 (밀리초)
+});
 
-  const currentTime = Date.now();
-  if (currentTime - lastMoveTime < moveDelay) return;
+document.addEventListener("keyup", e => {
+  const key = e.key;
+  keyState[key] = false;
 
-  // 방향키 입력 처리
-  switch (e.key) {
+  if (keyInterval[key]) {
+    clearInterval(keyInterval[key]);
+    delete keyInterval[key];
+  }
+
+  // 이동 상태 초기화
+  if (key === "ArrowLeft") isMovingLeft = false;
+  if (key === "ArrowRight") isMovingRight = false;
+  if (key === "ArrowDown") isMovingDown = false;
+  if (key === "ArrowUp") isRotating = false;
+});
+
+function handleKeyAction(key) {
+  switch (key) {
     case "ArrowLeft":
       if (!isMovingLeft) {
         isMovingLeft = true;
-        moveLeft(); // 왼쪽으로 이동
+        moveLeft();
       }
       break;
     case "ArrowRight":
       if (!isMovingRight) {
         isMovingRight = true;
-        moveRight(); // 오른쪽으로 이동
+        moveRight();
       }
       break;
     case "ArrowDown":
       if (!isMovingDown) {
         isMovingDown = true;
-        moveDown(); // 아래로 이동
+        moveDown();
       }
       break;
     case "ArrowUp":
-    case "z":
       if (!isRotating) {
         isRotating = true;
-        rotateBlock("clockwise"); // 시계방향 회전
-      }
-      break;
-    case "x":
-      if (!isRotating) {
-        isRotating = true;
-        rotateBlock("counterclockwise"); // 반시계방향 회전
+        rotateBlock();
       }
       break;
     case " ":
       while (canMove(current.shape, x, y + 1)) y++;
-      drop(); dropCounter = 0; break;
+      drop();
+      dropCounter = 0;
+      break;
     case "c":
       if (!holdUsed) {
         if (!hold) {
@@ -310,9 +322,8 @@ document.addEventListener("keydown", e => {
       }
       break;
   }
+}
 
-  lastMoveTime = currentTime;
-});
 
 function rotateBlock(direction) {
   let rotated;
