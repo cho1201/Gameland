@@ -252,6 +252,8 @@ document.addEventListener("keydown", e => {
       e.preventDefault(); 
       break;
   }
+  let lastMoveTime = 0;
+  const moveDelay = 150; // 키 반복 입력 간 최소 간격 (밀리초)
 
   const currentTime = Date.now();
   if (currentTime - lastMoveTime < moveDelay) return;
