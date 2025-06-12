@@ -170,12 +170,9 @@ function saveScore(score) {
     body: `score=${encodeURIComponent(score)}&game_name=tetris`
   })
   .then(res => res.json())
-  .then(data => { 
-    if (data?.message) alert(data.message); 
-  })
+  .then(data => { if (data?.message) alert(data.message); })
   .catch(err => console.error("점수 저장 실패:", err));
 }
-
 
 function gameOver() {
   isGameOver = true;
@@ -229,77 +226,34 @@ function update(time = 0) {
   draw();
   requestAnimationFrame(update);
 }
-
-let isMovingLeft = false;
-let isMovingRight = false;
-let isMovingDown = false;
-let isRotating = false;
-
-
-const keyState = {};
-const keyInterval = {};
-const KEY_DELAY = 150; // 좌우 이동 간격
-
 document.addEventListener("keydown", e => {
   if (isGameOver) return;
 
-  const key = e.key;
-  if (!["ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", " ", "c"].includes(key)) return;
-  e.preventDefault();
-
-  // 좌우 이동 키 반복 처리
-  if (key === "ArrowLeft" || key === "ArrowRight") {
-    if (keyState[key]) return; // 이미 누르고 있으면 무시
-    keyState[key] = true;
-    handleKeyAction(key); // 즉시 실행
-    keyInterval[key] = setInterval(() => handleKeyAction(key), KEY_DELAY);
-  } else {
-    // 그 외 키는 한 번만 처리
-    handleKeyAction(key);
-  }
-});
-
-document.addEventListener("keyup", e => {
-  const key = e.key;
-  keyState[key] = false;
-
-  if (keyInterval[key]) {
-    clearInterval(keyInterval[key]);
-    delete keyInterval[key];
-  }
-
-  // 이동 상태 초기화
-  if (key === "ArrowLeft") isMovingLeft = false;
-  if (key === "ArrowRight") isMovingRight = false;
-  if (key === "ArrowDown") isMovingDown = false;
-  if (key === "ArrowUp") isRotating = false;
-});
-
-function handleKeyAction(key) {
-  switch (key) {
+  switch (e.key) {
     case "ArrowLeft":
-      if (!isMovingLeft) {
-        isMovingLeft = true;
-        moveLeft();
-      }
+    case "ArrowRight":
+    case "ArrowDown":
+    case "ArrowUp":
+    case " ":
+    case "c":
+      e.preventDefault();  // 기본 스크롤 동작 방지
+      break;
+  }
+
+  switch (e.key) {
+    case "ArrowLeft":
+      if (canMove(current.shape, x - 1, y)) x--;
       break;
     case "ArrowRight":
-      if (!isMovingRight) {
-        isMovingRight = true;
-        moveRight();
-      }
+      if (canMove(current.shape, x + 1, y)) x++;
       break;
     case "ArrowDown":
-      if (!isMovingDown) {
-        isMovingDown = true;
-        moveDown();
-      }
+      drop();
+      dropCounter = 0;
       break;
     case "ArrowUp":
-      if (!isRotating) {
-        isRotating = true;
-        rotateBlock();
-      }
+      const rotated = rotate(current.shape);
+      if (canMove(rotated, x, y)) current.shape = rotated;
       break;
     case " ":
       while (canMove(current.shape, x, y + 1)) y++;
@@ -322,62 +276,9 @@ function handleKeyAction(key) {
       }
       break;
   }
-}
-
-
-function rotateBlock(direction) {
-  let rotated;
-  if (direction === "clockwise") {
-    rotated = rotate(current.shape);
-  } else if (direction === "counterclockwise") {
-    rotated = rotate(current.shape).reverse();
-  }
-
-  // 회전 후 충돌을 확인하고, 충돌 시 위치를 조정합니다.
-  if (canMove(rotated, x, y)) {
-    current.shape = rotated;
-  } else {
-    // 충돌 시 회전한 블록을 벽에서 떨어뜨리기 위해
-    // 좌우로 이동을 시도합니다. 왼쪽으로 이동하고, 오른쪽으로 이동 시도
-    if (canMove(rotated, x - 1, y)) {
-      x--; // 왼쪽으로 이동
-      current.shape = rotated;
-    } else if (canMove(rotated, x + 1, y)) {
-      x++; // 오른쪽으로 이동
-      current.shape = rotated;
-    } else if (canMove(rotated, x, y + 1)) {
-      // 여전히 충돌이 발생하면, 블록을 한 칸 아래로 내리면서 회전
-      y++; 
-      current.shape = rotated;
-    }
-  }
-  isRotating = false; // 한번 회전 후에는 멈춤
-}
-
-
-
-// 키가 계속 눌려 있을 때 이동을 반복하는 함수들
-function moveLeft() {
-  if (canMove(current.shape, x - 1, y)) x--;
-  if (isMovingLeft) requestAnimationFrame(moveLeft);
-}
-
-function moveRight() {
-  if (canMove(current.shape, x + 1, y)) x++;
-  if (isMovingRight) requestAnimationFrame(moveRight);
-}
-
-function moveDown() {
-  drop(); dropCounter = 0;
-  if (isMovingDown) requestAnimationFrame(moveDown);
-}
-
-startGameButton.addEventListener("click", () => {
-  console.log("게임 시작 버튼 클릭됨");
-  startGame(); // 게임 시작 함수 호출
 });
 
-//startGameButton.addEventListener("click", startGame);
+startGameButton.addEventListener("click", startGame);
 inGameBackToLobbyButton.addEventListener("click", () => {
   if (confirm("게임을 중단하고 로비로 돌아가시겠습니까? 점수는 저장되지 않습니다.")) {
     isGameOver = true;
